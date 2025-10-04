@@ -1,0 +1,40 @@
+@model IEnumerable<EX_Parcial_VilchezGuardia_JF.Models.Curso>
+
+@{
+    ViewData["Title"] = "Panel Coordinador - Cursos";
+}
+
+<h2 class="mb-3">📚 Panel del Coordinador</h2>
+<a asp-action="Create" class="btn btn-success mb-3">➕ Crear Curso</a>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Nombre</th>
+            <th>Créditos</th>
+            <th>Activo</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var c in Model)
+        {
+            <tr>
+                <td>@c.Nombre</td>
+                <td>@c.Creditos</td>
+                <td>@(c.Activo ? "Sí" : "No")</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@c.Id" class="btn btn-warning btn-sm">✏️ Editar</a>
+                    <form asp-action="Desactivar" asp-route-id="@c.Id" method="post" style="display:inline;">
+                        <button class="btn btn-danger btn-sm">
+                            @(c.Activo ? "🚫 Desactivar" : "✅ Activar")
+                        </button>
+                    </form>
+                    <a asp-action="Matriculas" asp-route-id="@c.Id" class="btn btn-info btn-sm">🎓 Matrículas</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+

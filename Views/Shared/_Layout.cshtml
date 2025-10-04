@@ -28,6 +28,18 @@
                         </li>
                     </ul>
                     <partial name="_LoginPartial" />
+
+                    @* 👉 Enlace "Volver al curso" usando Session *@
+                    @{
+                        var lastId = Context.Session.GetInt32("LastCourseId");
+                        var lastName = Context.Session.GetString("LastCourseName");
+                    }
+                    @if(lastId.HasValue && !string.IsNullOrEmpty(lastName))
+                    {
+                        <a class="btn btn-sm btn-outline-secondary ms-2" asp-controller="Catalogo" asp-action="Detalle" asp-route-id="@lastId.Value">
+                            Volver al curso @lastName
+                        </a>
+                    }
                 </div>
             </div>
         </nav>
@@ -49,3 +61,4 @@
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
+

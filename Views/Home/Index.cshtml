@@ -2,7 +2,30 @@
     ViewData["Title"] = "Home Page";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="container text-center mt-5">
+    <h1 class="display-4">Portal Académico — Examen Parcial</h1>
+    <p class="lead">Accede rápidamente a las funcionalidades implementadas</p>
+
+    <div class="row mt-4">
+        <!-- Pregunta 2: Catálogo de Cursos -->
+        <div class="col-md-4 mb-3">
+            <a href="@Url.Action("Index", "Catalogo")" class="btn btn-primary btn-lg w-100">
+                Catálogo de Cursos
+            </a>
+        </div>
+
+        <!-- Pregunta 3: Matrículas -->
+        <div class="col-md-4 mb-3">
+            <a href="@Url.Action("Index", "Matriculas")" class="btn btn-success btn-lg w-100">
+                Mis Matrículas
+            </a>
+        </div>
+
+        <!-- Pregunta 5: Panel Coordinador -->
+        <div class="col-md-4 mb-3">
+            <a href="@Url.Action("Index", "Cursos", new { area = "Coordinador" })" class="btn btn-dark btn-lg w-100">
+                Panel Coordinador
+            </a>
+        </div>
+    </div>
 </div>

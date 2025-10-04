@@ -1,6 +1,8 @@
-using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Identity;
 using EX_Parcial_VilchezGuardia_JF.Data;
+using EX_Parcial_VilchezGuardia_JF.Services;
+using StackExchange.Redis; // 👈 agregado para probar conexión a Redis
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore; // 👈 necesario para UseSqlite
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,27 +15,123 @@ builder.Services.AddRazorPages();
 
 // DbContext con SQLite (usa ApplicationDbContext)
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection") ?? "Data Source=parcial.db"));
+    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection") ?? "Data Source=app.db"));
 
 // Identity con Roles y cuentas
 builder.Services.AddIdentity<IdentityUser, IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
 
-// Sesiones + Cache
-builder.Services.AddDistributedMemoryCache(); // fallback en local
-builder.Services.AddSession();
+// Sesiones + Cache en memoria (fallback si Redis no está configurado)
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
 builder.Services.AddHttpContextAccessor();
 
 // Register a no-op email sender for Identity UI when no SMTP is configured
 builder.Services.AddTransient<Microsoft.AspNetCore.Identity.UI.Services.IEmailSender, EX_Parcial_VilchezGuardia_JF.Services.NullEmailSender>();
 
-// Redis (si está configurado)
-var redisConn = builder.Configuration["Redis__ConnectionString"];
+// -----------------
+// Redis (si está configurado) - sólo registrar si la conexión funciona
+// -----------------
+var redisConn = builder.Configuration["Redis:ConnectionString"] ?? builder.Configuration["Redis__ConnectionString"];
+
+// 👇 NUEVO: construir connection string si tenemos Host/Port/Password separados en appsettings.json
+if (string.IsNullOrEmpty(redisConn))
+{
+    var redisHost = builder.Configuration["Redis:Host"];
+    var redisPort = builder.Configuration["Redis:Port"];
+    var redisUser = builder.Configuration["Redis:User"];
+    var redisPassword = builder.Configuration["Redis:Password"];
+
+    if (!string.IsNullOrEmpty(redisHost) && !string.IsNullOrEmpty(redisPort) && !string.IsNullOrEmpty(redisPassword))
+    {
+        redisConn = $"{redisHost}:{redisPort},password={redisPassword},user={redisUser},ssl=True,abortConnect=False";
+    }
+}
+
 if (!string.IsNullOrEmpty(redisConn))
 {
-    builder.Services.AddStackExchangeRedisCache(options =>
-        options.Configuration = redisConn);
+    try
+    {
+        // Parsear la cadena para ajustar opciones (SSL, timeouts) si es necesario.
+        var cfg = ConfigurationOptions.Parse(redisConn);
+        cfg.AbortOnConnectFail = false;
+        cfg.ConnectTimeout = 10000; // 10s
+        cfg.SyncTimeout = 5000;
+
+        if (!cfg.Ssl)
+        {
+            cfg.Ssl = true; // Redis Cloud siempre requiere TLS
+        }
+
+        var testMuxer = ConnectionMultiplexer.Connect(cfg);
+        if (testMuxer != null && testMuxer.IsConnected)
+        {
+            builder.Services.AddSingleton<IConnectionMultiplexer>(testMuxer);
+
+            builder.Services.AddStackExchangeRedisCache(options =>
+            {
+                options.Configuration = cfg.ToString();
+            });
+
+            Console.WriteLine("[Startup] Redis disponible: usando Redis para IDistributedCache.");
+        }
+        else
+        {
+            Console.WriteLine("[Startup] No se pudo conectar a Redis: falló la validación inicial. Usando caché en memoria.");
+            testMuxer?.Dispose();
+        }
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"[Startup] Redis NO configurado (falló conexión de prueba): {ex.GetType().Name}: {ex.Message}");
+    }
+}
+
+// -----------------
+//  Redis por Host/Port/User/Password
+// -----------------
+var redisSection = builder.Configuration.GetSection("Redis");
+var host = redisSection.GetValue<string>("Host");
+var port = redisSection.GetValue<int>("Port");
+var user = redisSection.GetValue<string>("User");
+var password = redisSection.GetValue<string>("Password");
+
+if (!string.IsNullOrEmpty(host) && port > 0 && !string.IsNullOrEmpty(password))
+{
+    var redisConfig = new ConfigurationOptions
+    {
+        AbortOnConnectFail = false,
+        Ssl = true,             // Redis Cloud requiere TLS
+        ConnectTimeout = 10000,
+        SyncTimeout = 5000
+    };
+    redisConfig.EndPoints.Add(host, port);
+    if (!string.IsNullOrEmpty(user)) redisConfig.User = user;
+    redisConfig.Password = password;
+
+    try
+    {
+        var muxer = ConnectionMultiplexer.Connect(redisConfig);
+        if (muxer.IsConnected)
+        {
+            builder.Services.AddSingleton<IConnectionMultiplexer>(muxer);
+            builder.Services.AddStackExchangeRedisCache(options =>
+            {
+                options.ConfigurationOptions = redisConfig;
+            });
+            Console.WriteLine("[Startup] Redis configurado desde Host/Port/User/Password en appsettings.json.");
+        }
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"[Startup] Redis NO configurado (falló conexión de prueba con Host/Port): {ex.GetType().Name}: {ex.Message}");
+    }
 }
 
 var app = builder.Build();
@@ -106,6 +204,25 @@ app.MapControllerRoute(
 
 // 🔑 IMPORTANTE: habilitar Razor Pages (para Identity UI)
 app.MapRazorPages();
+
+// -----------------
+// Test de Redis en modo desarrollo
+// -----------------
+if (app.Environment.IsDevelopment() && !string.IsNullOrEmpty(redisConn))
+{
+    try
+    {
+        var muxer = ConnectionMultiplexer.Connect(redisConn);
+        var db = muxer.GetDatabase();
+        db.StringSet("foo", "bar");
+        var result = db.StringGet("foo");
+        Console.WriteLine($"[Redis Test] foo = {result}"); // >>> debería mostrar "bar"
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"[Redis Test] No se pudo conectar a Redis: {ex.GetType().Name}: {ex.Message}");
+    }
+}
 
 app.Run();
 

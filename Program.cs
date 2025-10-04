@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
-
 using EX_Parcial_VilchezGuardia_JF.Data;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -9,12 +8,14 @@ var builder = WebApplication.CreateBuilder(args);
 // Services
 // -----------------
 builder.Services.AddControllersWithViews();
+// Razor Pages (necessary for Identity UI pages)
+builder.Services.AddRazorPages();
 
 // DbContext con SQLite (usa ApplicationDbContext)
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection") ?? "Data Source=parcial.db"));
 
-// Identity con Roles
+// Identity con Roles y cuentas
 builder.Services.AddIdentity<IdentityUser, IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
@@ -23,6 +24,9 @@ builder.Services.AddIdentity<IdentityUser, IdentityRole>()
 builder.Services.AddDistributedMemoryCache(); // fallback en local
 builder.Services.AddSession();
 builder.Services.AddHttpContextAccessor();
+
+// Register a no-op email sender for Identity UI when no SMTP is configured
+builder.Services.AddTransient<Microsoft.AspNetCore.Identity.UI.Services.IEmailSender, EX_Parcial_VilchezGuardia_JF.Services.NullEmailSender>();
 
 // Redis (si está configurado)
 var redisConn = builder.Configuration["Redis__ConnectionString"];
@@ -89,7 +93,9 @@ app.UseAuthorization();
 
 app.UseSession();
 
+// -----------------
 // Rutas
+// -----------------
 app.MapControllerRoute(
     name: "areas",
     pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
@@ -98,5 +104,9 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
+// 🔑 IMPORTANTE: habilitar Razor Pages (para Identity UI)
+app.MapRazorPages();
+
 app.Run();
+
 

@@ -21,6 +21,7 @@
         border-radius: 6px;
         padding: 8px 14px;
         text-decoration: none;
+        border: none;
     }
     .btn-inscribirse:hover { background-color: #1b4332; color:white; }
 </style>
@@ -29,7 +30,31 @@
     <h2>@Model.Nombre (@Model.Codigo)</h2>
     <p><strong>Créditos:</strong> @Model.Creditos</p>
     <p><strong>Horario:</strong> @Model.HorarioInicio - @Model.HorarioFin</p>
+    <p><strong>Cupo máximo:</strong> @Model.CupoMaximo</p>
     <p><strong>Activo:</strong> @(Model.Activo ? "Sí" : "No")</p>
 
-    <a asp-action="Inscribirse" asp-route-id="@Model.Id" class="btn-inscribirse">Inscribirse</a>
+    @if (User.Identity.IsAuthenticated)
+    {
+        <form asp-controller="Matriculas" asp-action="Inscribirse" method="post">
+            <input type="hidden" name="cursoId" value="@Model.Id" />
+            <button type="submit" class="btn-inscribirse">Inscribirse</button>
+        </form>
+    }
+    else
+    {
+        <p>
+            <a href="/Identity/Account/Login" class="btn btn-warning">
+                Inicia sesión para inscribirte
+            </a>
+        </p>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger mt-3">@TempData["Error"]</div>
+    }
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success mt-3">@TempData["Success"]</div>
+    }
 </div>

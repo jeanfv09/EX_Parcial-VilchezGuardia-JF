@@ -1,5 +1,5 @@
 # Etapa de build
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build-env
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build-env
 WORKDIR /app
 
 # Copiar archivos de proyecto y restaurar dependencias
@@ -13,7 +13,7 @@ COPY . ./
 RUN dotnet publish -c Release -o out
 
 # Etapa de runtime
-FROM mcr.microsoft.com/dotnet/aspnet:8.0
+FROM mcr.microsoft.com/dotnet/aspnet:9.0
 WORKDIR /app
 COPY --from=build-env /app/out .
 

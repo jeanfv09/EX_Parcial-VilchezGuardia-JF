@@ -26,6 +26,9 @@ namespace EX_Parcial_VilchezGuardia_JF.Models
 
         public bool Activo { get; set; } = true;
 
+    // Navegación a matrículas
+    public List<Matricula> Matriculas { get; set; } = new();
+
         // 🔹 Validación personalizada
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {

@@ -3,29 +3,44 @@
 }
 
 <div class="container text-center mt-5">
-    <h1 class="display-4">Portal Académico — Examen Parcial</h1>
-    <p class="lead">Accede rápidamente a las funcionalidades implementadas</p>
+    <h1 class="display-4 mb-3">Portal Académico — Examen Parcial</h1>
+    <p class="lead mb-4">Accede rápidamente a las funcionalidades implementadas</p>
 
-    <div class="row mt-4">
+    <div class="row justify-content-center mt-4">
         <!-- Pregunta 2: Catálogo de Cursos -->
-        <div class="col-md-4 mb-3">
+        <div class="col-md-3 mb-3">
             <a href="@Url.Action("Index", "Catalogo")" class="btn btn-primary btn-lg w-100">
-                Catálogo de Cursos
+                📚 Catálogo de Cursos
             </a>
         </div>
 
         <!-- Pregunta 3: Matrículas -->
-        <div class="col-md-4 mb-3">
+        <div class="col-md-3 mb-3">
             <a href="@Url.Action("Index", "Matriculas")" class="btn btn-success btn-lg w-100">
-                Mis Matrículas
+                🎓 Mis Matrículas
             </a>
         </div>
 
         <!-- Pregunta 5: Panel Coordinador -->
-        <div class="col-md-4 mb-3">
-            <a href="@Url.Action("Index", "Cursos", new { area = "Coordinador" })" class="btn btn-dark btn-lg w-100">
-                Panel Coordinador
-            </a>
+        <div class="col-md-3 mb-3">
+            @if (User.IsInRole("Coordinador"))
+            {
+                <a href="@Url.Action("Index", "Cursos", new { area = "Coordinador" })" class="btn btn-dark btn-lg w-100">
+                    ⚙️ Panel Coordinador
+                </a>
+            }
+            else
+            {
+                <button class="btn btn-secondary btn-lg w-100" disabled title="Solo para Coordinadores">
+                    🔒 Panel Coordinador
+                </button>
+            }
         </div>
     </div>
+
+    <hr class="my-4" />
+
+    <p class="text-muted">
+        <small>© 2025 - EX_Parcial_VilchezGuardia_JF — Universidad San Martín de Porres</small>
+    </p>
 </div>

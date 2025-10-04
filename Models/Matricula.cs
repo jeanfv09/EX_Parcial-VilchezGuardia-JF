@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Identity;
 
 namespace EX_Parcial_VilchezGuardia_JF.Models
 {   
@@ -24,5 +25,8 @@ namespace EX_Parcial_VilchezGuardia_JF.Models
 
         [Required]
         public EstadoMatricula Estado { get; set; } = EstadoMatricula.Pendiente;
+
+        // Navegación al usuario (Identity)
+        public IdentityUser? Usuario { get; set; }
     }
 }

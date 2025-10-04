@@ -142,7 +142,16 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    db.Database.Migrate();
+    try
+    {
+        db.Database.Migrate();
+    }
+    catch (InvalidOperationException ex) when (ex.Message?.Contains("PendingModelChangesWarning") == true || ex.Message?.Contains("pending changes") == true)
+    {
+        Console.WriteLine("[Startup] WARNING: Hay cambios pendientes en el modelo de datos. No se aplicaron migraciones automáticas.");
+        Console.WriteLine($"[Startup] Detalle: {ex.Message}");
+        Console.WriteLine("[Startup] Para resolverlo localmente ejecuta: dotnet ef migrations add NombreDeLaMigracion && dotnet ef database update");
+    }
 
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
@@ -216,7 +225,7 @@ if (app.Environment.IsDevelopment() && !string.IsNullOrEmpty(redisConn))
         var db = muxer.GetDatabase();
         db.StringSet("foo", "bar");
         var result = db.StringGet("foo");
-        Console.WriteLine($"[Redis Test] foo = {result}"); // >>> debería mostrar "bar"
+        Console.WriteLine($"[Redis Test] foo = {result}");
     }
     catch (Exception ex)
     {
@@ -224,6 +233,24 @@ if (app.Environment.IsDevelopment() && !string.IsNullOrEmpty(redisConn))
     }
 }
 
+// -----------------
+// 🔐 Login rápido para desarrollo
+// -----------------
+app.MapGet("/login-coordinador", async (UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager, HttpContext ctx) =>
+{
+    var user = await userManager.FindByEmailAsync("coordinador@uni.com");
+    if (user != null)
+    {
+        await signInManager.SignInAsync(user, isPersistent: true);
+        await ctx.Response.WriteAsync("Sesión iniciada como coordinador@uni.com ✅. Ve a /Coordinador/Cursos");
+    }
+    else
+    {
+        await ctx.Response.WriteAsync("Usuario coordinador no encontrado ❌.");
+    }
+});
+
 app.Run();
+
 
 

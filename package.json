@@ -1,0 +1,17 @@
+{
+  "name": "ex_parcial-vilchezguardia-jf",
+  "version": "1.0.0",
+  "description": "A project for EX Parcial Vilchez Guardia JF",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "node src/app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "express": "^4.17.1"
+  },
+  "devDependencies": {},
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

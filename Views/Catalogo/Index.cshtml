@@ -1,0 +1,118 @@
+@model IEnumerable<EX_Parcial_VilchezGuardia_JF.Models.Curso>
+@{
+    ViewData["Title"] = "Catálogo de Cursos";
+}
+
+<style>
+    .catalogo-container {
+        margin: 30px auto;
+        max-width: 1100px;
+    }
+    .filtros {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 12px;
+        margin-bottom: 25px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .filtros label {
+        font-weight: bold;
+        margin-right: 8px;
+    }
+    .filtros input {
+        margin-bottom: 10px;
+    }
+    .tabla-cursos {
+        width: 100%;
+        border-collapse: collapse;
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    .tabla-cursos th {
+        background: #0077b6;
+        color: white;
+        padding: 12px;
+        text-align: center;
+    }
+    .tabla-cursos td {
+        padding: 10px;
+        text-align: center;
+        border-bottom: 1px solid #ddd;
+    }
+    .tabla-cursos tr:hover {
+        background: #f1f1f1;
+    }
+    .btn-detalle {
+        background: #0096c7;
+        color: white;
+        padding: 6px 12px;
+        border-radius: 6px;
+        text-decoration: none;
+    }
+    .btn-detalle:hover {
+        background: #023e8a;
+        color: white;
+    }
+</style>
+
+<div class="catalogo-container">
+    <h1 class="text-center">Catálogo de Cursos</h1>
+
+    <!-- Formulario de Filtros -->
+    <form method="get" asp-action="Index" class="filtros">
+        <div class="row">
+            <div class="col-md-4">
+                <label>Nombre:</label>
+                <input type="text" name="nombre" class="form-control" />
+            </div>
+            <div class="col-md-4">
+                <label>Créditos (Mín - Máx):</label>
+                <div class="d-flex">
+                    <input type="number" name="creditosMin" class="form-control me-2" />
+                    <input type="number" name="creditosMax" class="form-control" />
+                </div>
+            </div>
+            <div class="col-md-4">
+                <label>Horario (Inicio - Fin):</label>
+                <div class="d-flex">
+                    <input type="time" name="horaInicio" class="form-control me-2" />
+                    <input type="time" name="horaFin" class="form-control" />
+                </div>
+            </div>
+        </div>
+        <div class="text-center mt-3">
+            <button type="submit" class="btn btn-primary">Filtrar</button>
+        </div>
+    </form>
+
+    <!-- Tabla de Cursos -->
+    <table class="tabla-cursos mt-4">
+        <thead>
+            <tr>
+                <th>Código</th>
+                <th>Nombre</th>
+                <th>Créditos</th>
+                <th>Horario</th>
+                <th>Activo</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var curso in Model)
+            {
+                <tr>
+                    <td>@curso.Codigo</td>
+                    <td>@curso.Nombre</td>
+                    <td>@curso.Creditos</td>
+                    <td>@curso.HorarioInicio - @curso.HorarioFin</td>
+                    <td>@(curso.Activo ? "Sí" : "No")</td>
+                    <td>
+                        <a asp-action="Detalle" asp-route-id="@curso.Id" class="btn-detalle">Ver Detalle</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

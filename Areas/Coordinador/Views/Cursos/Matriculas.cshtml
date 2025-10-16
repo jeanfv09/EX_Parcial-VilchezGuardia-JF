@@ -1,0 +1,38 @@
+@model EX_Parcial_VilchezGuardia_JF.Areas.Coordinador.Models.CursoConMatriculasViewModel
+
+<h2>Matrículas de @Model.Nombre</h2>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Usuario</th>
+            <th>Estado</th>
+            <th>Fecha Registro</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var m in Model.Matriculas)
+    {
+        <tr>
+            <td>@m.UsuarioEmail</td>
+            <td>@m.Estado</td>
+            <td>@m.FechaRegistro.ToString("g")</td>
+            <td>
+                @if (m.Estado == EX_Parcial_VilchezGuardia_JF.Models.EstadoMatricula.Pendiente)
+                {
+                    <form asp-action="ConfirmarMatricula" asp-route-id="@m.MatriculaId" method="post" style="display:inline">
+                        <button class="btn btn-success btn-sm">Confirmar</button>
+                    </form>
+                    <form asp-action="CancelarMatricula" asp-route-id="@m.MatriculaId" method="post" style="display:inline">
+                        <button class="btn btn-danger btn-sm">Cancelar</button>
+                    </form>
+                }
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
+
+<a asp-action="Index" class="btn btn-secondary">⬅ Volver</a>
+

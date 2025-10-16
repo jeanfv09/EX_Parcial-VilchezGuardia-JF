@@ -1,0 +1,60 @@
+@model EX_Parcial_VilchezGuardia_JF.Models.Curso
+@{
+    ViewData["Title"] = "Detalle del Curso";
+}
+
+<style>
+    .detalle-curso {
+        background: #fff;
+        padding: 25px;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        margin-top: 20px;
+        max-width: 600px;
+    }
+    .detalle-curso h2 { color: #0077b6; margin-bottom: 15px; }
+    .detalle-curso p { font-size: 1rem; margin: 6px 0; }
+    .detalle-curso strong { color: #2c3e50; }
+    .btn-inscribirse {
+        background-color: #2d6a4f;
+        color: white;
+        border-radius: 6px;
+        padding: 8px 14px;
+        text-decoration: none;
+        border: none;
+    }
+    .btn-inscribirse:hover { background-color: #1b4332; color:white; }
+</style>
+
+<div class="detalle-curso">
+    <h2>@Model.Nombre (@Model.Codigo)</h2>
+    <p><strong>Créditos:</strong> @Model.Creditos</p>
+    <p><strong>Horario:</strong> @Model.HorarioInicio - @Model.HorarioFin</p>
+    <p><strong>Cupo máximo:</strong> @Model.CupoMaximo</p>
+    <p><strong>Activo:</strong> @(Model.Activo ? "Sí" : "No")</p>
+
+    @if (User.Identity.IsAuthenticated)
+    {
+        <form asp-controller="Matriculas" asp-action="Inscribirse" method="post">
+            <input type="hidden" name="cursoId" value="@Model.Id" />
+            <button type="submit" class="btn-inscribirse">Inscribirse</button>
+        </form>
+    }
+    else
+    {
+        <p>
+            <a href="/Identity/Account/Login" class="btn btn-warning">
+                Inicia sesión para inscribirte
+            </a>
+        </p>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger mt-3">@TempData["Error"]</div>
+    }
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success mt-3">@TempData["Success"]</div>
+    }
+</div>
